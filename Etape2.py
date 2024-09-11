@@ -95,6 +95,7 @@ class NoteApp(QWidget):
            QMessageBox.warning(self, "Erreur", "Veuillez sélectionner une note à supprimer")
 if __name__ == "__main__":
    app = QApplication(sys.argv)
+   
    window = NoteApp()
    window.show()
    sys.exit(app.exec())
