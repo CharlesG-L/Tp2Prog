@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prise de Notes - Méthode Outline</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            display: flex; /* Utiliser flexbox pour la mise en page */
+            height: 100vh; /* Hauteur de la page complète */
+        }
+        .sidebar {
+            width: 200px; /* Largeur de la colonne de gauche */
+            background: white;
+            border-right: 1px solid #ddd;
+            padding: 20px;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+        }
+        .container {
+            flex-grow: 1; /* Prendre tout l'espace restant */
+            padding: 30px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            display: none; /* Masquer toutes les sections par défaut */
+        }
+        input[type="text"], textarea {
+            width: 100%;
+            margin: 5px 0 15px;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        textarea {
+            flex-grow: 1; /* Permet à la zone de contenu de s'étendre */
+            resize: vertical; /* Permet de redimensionner verticalement */
+        }
+        button {
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 8px 10px; /* Réduire la taille des boutons */
+            cursor: pointer;
+            margin-right: 5px;
+            font-size: 14px; /* Réduire la taille de la police des boutons */
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+            margin-top: 20px;
+            flex-grow: 1; /* Permet à la liste des notes de prendre tout l'espace disponible */
+            overflow-y: auto; /* Ajouter un défilement si nécessaire */
+        }
+        li {
+            padding: 12px;
+            border: 1px solid #ddd;
+            margin: 5px 0;
+            cursor: pointer;
+            background-color: #f9f9f9;
+        }
+        li:hover {
+            background-color: #e9e9e9;
+        }
+    </style>
+</head>
+<body>
+
+<div class="sidebar">
+    <h3>Sujets</h3>
+    <ul>
+        <li onclick="showContent('networking')">COMMUTATION, ROUTAGE, RÉSEAU SANS FIL</li>
+        <li onclick="showContent('oop')">PROGRAMMATION ORIENTÉE OBJET</li>
+        <li onclick="showContent('security')">SÉCURITÉ DES APPLICATIONS</li>
+        <li onclick="showContent('servers')">ADMINISTRATION DE SERVEURS LOCAUX</li>
+    </ul>
+</div>
+
+<div id="networking" class="container">
+    <h1>Notes sur la COMMUTATION, ROUTAGE, RÉSEAU SANS FIL</h1>
+    <input type="text" id="title-networking" placeholder="Titre de la note" required>
+    <textarea id="content-networking" rows="10" placeholder="Contenu de la note" required></textarea>
+    <button onclick="addNote('networking')">Ajouter</button>
+    <button onclick="updateNote('networking')">Mettre à jour</button>
+    <button onclick="deleteNote('networking')">Supprimer</button>
+    <h2>Liste des Notes</h2>
+    <ul id="note-list-networking"></ul>
+</div>
+
+<div id="oop" class="container">
+    <h1>Notes sur la PROGRAMMATION ORIENTÉE OBJET</h1>
+    <input type="text" id="title-oop" placeholder="Titre de la note" required>
+    <textarea id="content-oop" rows="10" placeholder="Contenu de la note" required></textarea>
+    <button onclick="addNote('oop')">Ajouter</button>
+    <button onclick="updateNote('oop')">Mettre à jour</button>
+    <button onclick="deleteNote('oop')">Supprimer</button>
+    <h2>Liste des Notes</h2>
+    <ul id="note-list-oop"></ul>
+</div>
+
+<div id="security" class="container">
+    <h1>Notes sur la SÉCURITÉ DES APPLICATIONS</h1>
+    <input type="text" id="title-security" placeholder="Titre de la note" required>
+    <textarea id="content-security" rows="10" placeholder="Contenu de la note" required></textarea>
+    <button onclick="addNote('security')">Ajouter</button>
+    <button onclick="updateNote('security')">Mettre à jour</button>
+    <button onclick="deleteNote('security')">Supprimer</button>
+    <h2>Liste des Notes</h2>
+    <ul id="note-list-security"></ul>
+</div>
+
+<div id="servers" class="container">
+    <h1>Notes sur l'ADMINISTRATION DE SERVEURS LOCAUX</h1>
+    <input type="text" id="title-servers" placeholder="Titre de la note" required>
+    <textarea id="content-servers" rows="10" placeholder="Contenu de la note" required></textarea>
+    <button onclick="addNote('servers')">Ajouter</button>
+    <button onclick="updateNote('servers')">Mettre à jour</button>
+    <button onclick="deleteNote('servers')">Supprimer</button>
+    <h2>Liste des Notes</h2>
+    <ul id="note-list-servers"></ul>
+</div>
+
+<script>
+    const notes = {
+        networking: [],
+        oop: [],
+        security: [],
+        servers: []
+    };
+    let currentIndex = {
+        networking: -1,
+        oop: -1,
+        security: -1,
+        servers: -1
+    };
+
+    function showContent(subject) {
+        // Masquer toutes les sections de contenu
+        document.querySelectorAll('.container').forEach(container => {
+            container.style.display = 'none';
+        });
+        // Afficher la section sélectionnée
+        document.getElementById(subject).style.display = 'block';
+        clearInputs(subject);
+    }
+
+    function renderNotes(subject) {
+        const noteList = document.getElementById(`note-list-${subject}`);
+        noteList.innerHTML = '';
+        notes[subject].forEach((note, index) => {
+            const listItem = document.createElement('li');
+            listItem.textContent = `${index + 1} - ${note.title}`;
+            listItem.onclick = () => loadNote(subject, index);
+            noteList.appendChild(listItem);
+        });
+    }
+
+    function addNote(subject) {
+        const title = document.getElementById(`title-${subject}`).value;
+        const content = document.getElementById(`content-${subject}`).value;
+
+        if (title) {
+            notes[subject].push({ title, content });
+            renderNotes(subject);
+            clearInputs(subject);
+        } else {
+            alert("Le titre est obligatoire");
+        }
+    }
+
+    function loadNote(subject, index) {
+        currentIndex[subject] = index;
+        const note = notes[subject][index];
+        document.getElementById(`title-${subject}`).value = note.title;
+        document.getElementById(`content-${subject}`).value = note.content;
+    }
+
+    function updateNote(subject) {
+        if (currentIndex[subject] === -1) {
+            alert("Veuillez sélectionner une note à mettre à jour");
+            return;
+        }
+
+        const title = document.getElementById(`title-${subject}`).value;
+        const content = document.getElementById(`content-${subject}`).value;
+
+        if (title) {
+            notes[subject][currentIndex[subject]] = { title, content };
+            renderNotes(subject);
+            clearInputs(subject);
+            currentIndex[subject] = -1;
+        } else {
+            alert("Le titre est obligatoire");
+        }
+    }
+
+    function deleteNote(subject) {
+        if (currentIndex[subject] === -1) {
+            alert("Veuillez sélectionner une note à supprimer");
+            return;
+        }
+
+        notes[subject].splice(currentIndex[subject], 1);
+        renderNotes(subject);
+        clearInputs(subject);
+        currentIndex[subject] = -1;
+    }
+
+    function clearInputs(subject) {
+        document.getElementById(`title-${subject}`).value = '';
+        document.getElementById(`content-${subject}`).value = '';
+    }
+</script>
+
+</body>
+</html>
